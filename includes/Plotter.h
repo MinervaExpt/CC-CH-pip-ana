@@ -58,10 +58,11 @@ class Plotter {
   // Add X label
   void SetXLabel(PlotUtils::MnvH1D* hist) {
     std::string label;
-    label =
-        m_variable->Name() == "q2"
-            ? m_variable->m_hists.m_xlabel + "(GeV^{2})"
-            : m_variable->m_hists.m_xlabel + " (" + m_variable->m_units + ")";
+    label = m_variable->m_hists.m_xlabel + " (" + m_variable->m_units + ")";
+    //     m_variable->Name() == "q2"
+    //         ? m_variable->m_hists.m_xlabel + "(GeV^{2})"
+    //         : m_variable->m_hists.m_xlabel + " (" + m_variable->m_units +
+    //         ")";
     if (hist) hist->GetXaxis()->SetTitle(label.c_str());
   }
 

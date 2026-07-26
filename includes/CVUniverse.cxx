@@ -1168,9 +1168,11 @@ double CVUniverse::GetWeight() const {
     wgt_geant = GetGeantHadronWeight();  // Remove for closure test
   }
 
-  // if (m_is_signal && !IsTruth()) wgt_CCPiWegiht = GetChargedPionTuneWeight();
-  if (m_is_signal) wgt_CCPiWegiht = GetChargedPionTuneWeight();
-  // wgt_CCPiWegiht = GetChargedPionTuneWeight();
+  if (m_is_signal) {
+    int idx = (int)GetHighestEnergyTruePionIndex();
+    wgt_CCPiWegiht = GetChargedPionTuneWeight(GetTpiTrue(idx), GetQ2True());
+  }
+
   /*  std::cout << "GENIE " << wgt_genie << " Flux " <<  wgt_flux << " 2p2h " <<
               wgt_2p2h << " RPA " << wgt_rpa << " LowQ2 " <<  wgt_lowq2 <<
               " MuEff " << wgt_mueff << " Michel " << wgt_michel << "

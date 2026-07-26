@@ -20,18 +20,19 @@ def round_to_sig_figs(num, sig_figs):
 
 TH1.AddDirectory(False)
 variables = [
-    "mixtpi",
-#   "mixthetapi_deg",
-    "enu",
-    "pmu",
-    "ptmu",
-    "pzmu",
-    "q2",
-    "thetamu_deg",
-    "wexp",
+#    "mixtpi",
+   "mixthetapi_deg",
+#    "enu",
+#    "pmu",
+#    "ptmu",
+#    "pzmu",
+#    "q2",
+#    "thetamu_deg",
+#    "wexp",
 ]
 
-File = TFile.Open("DataXSecInputs_20240622_ALL_mixed_newtpibinning_noSys_p4.root")
+File = TFile.Open("DataXSecInputs_20241217_ALL_mix_thetapi_CCPiWeighSys_p4.root")
+#File = TFile.Open("DataXSecInputs_20240622_ALL_mixed_newtpibinning_noSys_p4.root")
 #File = TFile.Open("DataXSecInputs_20240610_ALL_thetapisig_NewEstimatorptmucut_Sys_p4.root")
 Max = 0
 Min = 999999 
@@ -53,17 +54,21 @@ for v in variables:
   unfact = 0
   unitsCorr = 1
   if v == "mixtpi": 
-      unfact=7.8
+      #unfact=7.8
+      unfact=6.5
       h_cv_data.ModifyStatisticalUnc(unfact,"unfolding_cov_matrix_{V}".format(V=v));
   if v == "q2":
-      unfact=6.9 
+      #unfact=6.9 
+      unfact=7.5 
       h_cv_data.ModifyStatisticalUnc(unfact,"unfolding_cov_matrix_{V}".format(V=v));
       unitsCorr=1000000
   if v == "mixthetapi_deg": 
-      unfact=10.2
+      #unfact=10.2
+      unfact=6.2
       h_cv_data.ModifyStatisticalUnc(unfact,"unfolding_cov_matrix_{V}".format(V=v));
   if v == "ptmu": 
-      unfact=7.9
+      #unfact=7.9
+      unfact=7.3
       h_cv_data.ModifyStatisticalUnc(unfact,"unfolding_cov_matrix_{V}".format(V=v));
       unitsCorr=1000
   if v == "pmu": 
@@ -72,6 +77,9 @@ for v in variables:
       unitsCorr=1000
   if v == "enu": 
       unitsCorr=1000
+  if v == "thetamu_deg": 
+      unfact=15.2
+      h_cv_data.ModifyStatisticalUnc(unfact,"unfolding_cov_matrix_{V}".format(V=v));
 
   h_cv_mc = File.Get("mc_cross_section_{VAR}".format(VAR=v))
   h_cv_mc.Scale(1.e42*unitsCorr,"width")

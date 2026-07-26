@@ -14,7 +14,7 @@ TH1.AddDirectory(False)
 variables = [
    "mixtpi",
 #   "mixthetapi_deg",
-   "enu",
+#   "enu",
    "pmu",
     "ptmu",
     "pzmu",
@@ -23,28 +23,34 @@ variables = [
     "wexp"
 ]
 # variables = ["mixtpi"]
-date = "20240622"
+date = "20241122"
 warp = "WARP1"
 plist = "ALL"
 
 fdenom = TFile.Open(
-        "DataXSecInputs_{DATE}_{PL}_mixed_newtpibinning_noSys_p4.root".format(
+        "DataXSecInputs_{DATE}_{PL}_mixed_CCPiSysAdded_sys_p4.root".format(
+#        "DataXSecInputs_{DATE}_{PL}_mix_CCPiWeightSys_p4.root".format(
             PL=plist, DATE=date))
 
 fnum = TFile.Open(
-        "MCXSecInputs_20240621_ALL_mixed_newtpibinning_p4_{WARP}.root".format(
+        "MCXSecInputs_20241217_ALL_mix_CCPiWeightNoSys_p4_{WARP}.root".format(
             PL=plist, DATE=date, WARP=warp))
 fdata = TFile.Open(
-        "DataXSecInputs_{DATE}_{PL}_mixed_newtpibinning_noSys_p4.root".format(
+#        "DataXSecInputs_{DATE}_{PL}_mix_CCPiWeightSys_p4.root".format(
+        "DataXSecInputs_{DATE}_{PL}_mixed_CCPiSysAdded_sys_p4.root".format(
             PL=plist, DATE=date, WARP=warp))
 
 
 for var in variables:
     lineWidth = 3
 
-    num = fnum.Get("effnum_{V}".format(V=var))
-    denom = fdenom.Get("effnum_{V}".format(V=var))
-    data = fdata.Get("bg_subbed_data_{V}".format(V=var))
+    #num = fnum.Get("effnum_{V}".format(V=var))
+    #denom = fdenom.Get("effnum_{V}".format(V=var))
+    #data = fdata.Get("bg_subbed_data_{V}".format(V=var))
+
+    num = fdenom.Get("selection_mc_{V}".format(V=var))
+    denom = fdenom.Get("selection_mc_untracked_no_tpi_weight_{V}".format(V=var))
+    data = fdata.Get("selection_data_{V}".format(V=var))
 
     datapot = fdata.Get("data_pot").GetBinContent(1)
     mcpot = fdenom.Get("mc_pot").GetBinContent(1)
@@ -202,6 +208,10 @@ for var in variables:
     oneline.GetYaxis().CenterTitle()
     oneline.GetYaxis().SetTitleOffset(1.3)
     oneline.GetYaxis().SetTitleSize(0.04)
+
+    ymax = ratiodata.GetBinContent(ratiodata.GetMaximumBin())*1.6
+    oneline.SetMaximum(ymax)
+    oneline.SetMinimum(0.0)
 
     oneline.Draw("HIST")
 #    gStyle.SetOptStat(0)

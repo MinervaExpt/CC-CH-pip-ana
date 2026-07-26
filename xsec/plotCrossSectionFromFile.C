@@ -14,6 +14,7 @@
 
 #include "PlotUtils/FluxReweighter.h"
 #include "PlotUtils/TargetUtils.h"
+#include "includes/Constants.h"
 #include "includes/MacroUtil.h"
 #include "includes/Plotter.h"
 #include "includes/Variable.h"
@@ -43,13 +44,12 @@ void SetPOT(TFile& fin, CCPi::MacroUtil& util) {
 //==============================================================================
 // Main
 //==============================================================================
-void plotCrossSectionFromFile(int signal_definition_int = 1,
+void plotCrossSectionFromFile(int signal_definition_int = 6,
                               int plot_errors = 1) {
   // Infiles
   TFile fin(
-      "DataXSecInputs_20241031_ALL_mixed_newTpisystOnlySignalEffDenfixed_sys_"
-      "p4.root",
-      "READ");
+      //      "DataXSecInputs_20241204_ALL_mix_CCPiWeightSys_p4.root",
+      "DataXSecInputs_20241217_ALL_mix_thetapi_CCPiWeighSys_p4.root", "READ");
   // TFile fin("DataXSecInputs_20240819_ME1A_mixed_NewSys_sys_p4.root", "READ");
   TFile fin1("GENIEXSECEXTRACT_AarSignalDefMCME1A_q2.root", "READ");
   TFile fin2("GENIEXSECEXTRACT_AarSignalDefTpichangeMCME1A_q2.root", "READ");
@@ -89,8 +89,7 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
   // TFile
   // finaux("MCXSecInputs_20240804_ALL_mixed_NoNMichelsCut_nosys_p4_NOMINAL.root",
   // "READ");
-  TFile finaux("MCXSecInputs_20240622_ALL_mixed_newtpibinning_noSys_p4.root",
-               "READ");
+  TFile finaux("DataXSecInputs_20241204_ALL_mix_CCPiCVandSys_p4.root", "READ");
 
   cout << "Reading input from " << fin.GetName() << endl;
 
@@ -104,8 +103,8 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
   // Don't actually use the MC chain, only load it to indirectly access it's
   // systematics
   const std::string plist = "ME1L";
-  std::string data_file_list = GetPlaylistFile(plist, false, true);
-  std::string mc_file_list = GetPlaylistFile(plist, true, true);
+  std::string data_file_list = GetPlaylistFile(plist, false, false);
+  std::string mc_file_list = GetPlaylistFile(plist, true, false);
   // std::string data_file_list = GetTestPlaylist(false);
   // std::string mc_file_list = GetTestPlaylist(true);
 
@@ -441,8 +440,9 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
                                                         downstreamBen,
                                                         false,  // isMC
                                                         apothemBen);
+  std::cout << "Number of targets = " << n_target_nucleonsBen << "\n";
   double targetsScale = n_target_nucleonsBen / n_target_nucleonsAaron;
-  dummyBenXsecDataCorr->Multiply(dummyBenXsecDataCorr, h_flux_normalization);
+  /*dummyBenXsecDataCorr->Multiply(dummyBenXsecDataCorr, h_flux_normalization);
   dummyBenXsecDataCorr->Scale(targetsScale);
   std::vector<PlotUtils::MnvH1D*> hvec;
   std::vector<PlotUtils::MnvH1D*> hvecinternal;
@@ -714,7 +714,7 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
             false, "BenSig/Aaronsig", "Q^{2} (GeV^{2})");
   PlotRatio(BenBGSub, BenAaronSigBGSub, "Q2", 1, "OurMasterBranchBGSub", false,
             "BenSig/Aaronsig", "Q^{2} (GeV^{2})");
-
+*/
   for (auto var : variables) {
     if (var->Name() == sidebands::kFitVarString) {
       var->m_hists.m_stacked_wsideband = StackedHistogram<WSidebandType>(
@@ -745,7 +745,7 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
   }
 
   // PLOT Event Selection, BGs (error)
-  if (true) {
+  if (false) {
     const bool do_frac_unc = true;
     const bool include_stat = true;
     bool do_cov_area_norm = false;
@@ -777,48 +777,110 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
     }
   }
   if (true) {
-    PlotUtils::MnvH1D* h_bkdtrackedtpi =
-        (PlotUtils::MnvH1D*)finaux.Get("selection_mc_tracked_mixtpi");
-    PlotUtils::MnvH1D* h_bkdtracklesstpi =
-        (PlotUtils::MnvH1D*)finaux.Get("selection_mc_untracked_mixtpi");
-    PlotUtils::MnvH1D* h_bkdmixtpi =
-        (PlotUtils::MnvH1D*)finaux.Get("selection_mc_mixed_mixtpi");
-    PlotUtils::MnvH1D* h_data =
-        (PlotUtils::MnvH1D*)fin.Get("selection_data_mixtpi");
-    PlotUtils::MnvH1D* h_mc_POT = (PlotUtils::MnvH1D*)finaux.Get("mc_pot");
+    for (auto var : variables) {
+      if (var->Name() == "wexp_fit") continue;
+      PlotUtils::MnvH1D* h_bkdtrackedtpi = nullptr;
+      //        (PlotUtils::MnvH1D*)finaux.Get(Form("selection_data_tracked_%s",
+      //        var->Name().c_str()));
+      PlotUtils::MnvH1D* h_bkdtracklesstpi = nullptr;
+      //        (PlotUtils::MnvH1D*)finaux.Get(Form("selection_data_untracked_%s",
+      //        var->Name().c_str()));
+      PlotUtils::MnvH1D* h_bkdmixtpi = nullptr;
+      //        (PlotUtils::MnvH1D*)finaux.Get(Form("selection_data_mixed_%s",
+      //        var->Name().c_str()));
+      PlotUtils::MnvH1D* h_data = nullptr;
+      //        (PlotUtils::MnvH1D*)fin.Get(Form("selection_data_%s",
+      //        var->Name().c_str()));
+      PlotUtils::MnvH1D* h_mc_POT = (PlotUtils::MnvH1D*)finaux.Get("mc_pot");
 
-    double scl = util.m_data_pot / h_mc_POT->GetBinContent(1);
-    PlotUtils::MnvPlotter mnvPlotter(PlotUtils::kCCNuPionIncStyle);
-    TCanvas cE("c1", "c1");
-    TObjArray* stack = new TObjArray();
-    h_bkdtrackedtpi->SetTitle("Tracked");
-    h_bkdtracklesstpi->SetTitle("Untracked");
-    h_bkdmixtpi->SetTitle("Overlap");
-    h_bkdtrackedtpi->GetYaxis()->SetTitle("Events/MeV");
-    h_data->GetYaxis()->SetTitle("Events/MeV");
-    h_bkdtrackedtpi->Scale(1, "width");
-    h_bkdtracklesstpi->Scale(1, "width");
-    h_bkdmixtpi->Scale(1, "width");
-    h_data->Scale(1., "width");
-    //  cE.SetLogx();
+      PlotUtils::MnvPlotter mnvPlotter(PlotUtils::kCCNuPionIncStyle);
+      TCanvas cE("c1", "c1");
 
-    stack->Add(h_bkdtrackedtpi);
-    stack->Add(h_bkdmixtpi);
-    stack->Add(h_bkdtracklesstpi);
-    // mnvPlotter.DrawStackedMC(stack, 1.0, "TR", 2, 1, 3001, "T_{#pi} (MeV)");
-    mnvPlotter.DrawDataStackedMC(h_data, stack, scl, "TR", "Data", 3, 1, 3001,
-                                 "T_{#pi} (MeV)");
-    mnvPlotter.AddHistoTitle("T_{#pi} Breakdown", 0.05);
+      if (var->Name() == "q2") {
+        h_bkdtrackedtpi = RebinQ2Plot(*(PlotUtils::MnvH1D*)fin.Get(
+            Form("selection_data_tracked_%s", var->Name().c_str())));
+        h_bkdtracklesstpi = RebinQ2Plot(*(PlotUtils::MnvH1D*)fin.Get(
+            Form("selection_data_untracked_%s", var->Name().c_str())));
+        h_bkdmixtpi = RebinQ2Plot(*(PlotUtils::MnvH1D*)fin.Get(
+            Form("selection_data_mixed_%s", var->Name().c_str())));
+        h_data = RebinQ2Plot(*(PlotUtils::MnvH1D*)fin.Get(
+            Form("selection_data_%s", var->Name().c_str())));
+        cE.SetLogx();
+      } else if (var->Name() == "enu" || var->Name() == "pmu" ||
+                 var->Name() == "ptmu" || var->Name() == "pzmu") {
+        // hist = RebinningtoGeV(*doomyhist, var->Name());
+        h_bkdtrackedtpi = RebinningtoGeV(
+            *(PlotUtils::MnvH1D*)finaux.Get(
+                Form("selection_data_tracked_%s", var->Name().c_str())),
+            var->Name());
+        h_bkdtracklesstpi = RebinningtoGeV(
+            *(PlotUtils::MnvH1D*)finaux.Get(
+                Form("selection_data_untracked_%s", var->Name().c_str())),
+            var->Name());
+        h_bkdmixtpi =
+            RebinningtoGeV(*(PlotUtils::MnvH1D*)finaux.Get(Form(
+                               "selection_data_mixed_%s", var->Name().c_str())),
+                           var->Name());
+        h_data = RebinningtoGeV(*(PlotUtils::MnvH1D*)fin.Get(Form(
+                                    "selection_data_%s", var->Name().c_str())),
+                                var->Name());
+      } else {
+        // hist = (PlotUtils::MnvH1D*)doomyhist->Clone("hist");
+        h_bkdtrackedtpi = (PlotUtils::MnvH1D*)finaux.Get(
+            Form("selection_data_tracked_%s", var->Name().c_str()));
+        h_bkdtracklesstpi = (PlotUtils::MnvH1D*)finaux.Get(
+            Form("selection_data_untracked_%s", var->Name().c_str()));
+        h_bkdmixtpi = (PlotUtils::MnvH1D*)finaux.Get(
+            Form("selection_data_mixed_%s", var->Name().c_str()));
+        h_data = (PlotUtils::MnvH1D*)fin.Get(
+            Form("selection_data_%s", var->Name().c_str()));
+      }
 
-    std::string plotname = "Stacked_Tpi_mixed_tpiweight";
-    mnvPlotter.MultiPrint(&cE, plotname, "png");
+      SetHistColorScheme(h_bkdtrackedtpi, 1, 5);
+      SetHistColorScheme(h_bkdtracklesstpi, 2, 5);
+      SetHistColorScheme(h_bkdmixtpi, 3, 5);
+
+      double scl = util.m_data_pot / h_mc_POT->GetBinContent(1);
+      TObjArray* stack = new TObjArray();
+      h_bkdtrackedtpi->SetTitle("Tracked");
+      h_bkdtracklesstpi->SetTitle("Untracked");
+      h_bkdmixtpi->SetTitle("Overlap");
+      h_bkdtrackedtpi->GetYaxis()->SetTitle(
+          Form("Events/%s", var->m_units.c_str()));
+      h_data->GetYaxis()->SetTitle(Form("Events/%s", var->m_units.c_str()));
+      h_bkdtrackedtpi->Scale(1, "width");
+      h_bkdtracklesstpi->Scale(1, "width");
+      h_bkdmixtpi->Scale(1, "width");
+      h_data->Scale(1., "width");
+
+      double ymax = h_data->GetBinContent(h_data->GetMaximumBin()) * 1.1;
+
+      stack->Add(h_bkdtrackedtpi);
+      stack->Add(h_bkdmixtpi);
+      stack->Add(h_bkdtracklesstpi);
+      mnvPlotter.axis_maximum = ymax;
+      mnvPlotter.axis_title_offset_y = 1.;
+      // mnvPlotter.DrawStackedMC(stack, 1.0, "TR", -1, -1, 3000, "T_{#pi}
+      // (MeV)");
+      std::string lbel = var->m_hists.m_xlabel + " " + var->m_units;
+      mnvPlotter.DrawDataStackedMC(h_data, stack, 1, "TR", "Data", -1, -1, 3002,
+                                   lbel.c_str());
+      // mnvPlotter.AddHistoTitle("T_{#pi} Breakdown", 0.05);
+      mnvPlotter.WriteNorm(Form("Data POT = %.2E", util.m_data_pot), 0.3, 0.88,
+                           0.03);
+      mnvPlotter.AddPlotLabel("Stat-error-only", 0.74, 0.73, 0.03, 9);
+      // std::string plotname = "Stacked_" + var->Name() +
+      // "_thetapisample_tpiweight";
+      std::string plotname = "Stacked_" + var->Name() + "_tpiweight";
+
+      mnvPlotter.MultiPrint(&cE, plotname, "pdf");
+    }
   }
   // PLOT Efficiency & Migration
-  if (true) {
+  if (false) {
     const bool do_frac_unc = true;
     const bool include_stat = true;
     const bool do_cov_area_norm = false;
-
     for (auto var : variables) {
       if (var->Name() == "wexp_fit") continue;
       // var->LoadMCHistsFromFile(fin, util.m_error_bands);
@@ -858,7 +920,7 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
   }
 
   // PLOT Background Subtraction
-  if (true) {
+  if (false) {
     const bool do_frac_unc = true;
     const bool include_stat = true;
     const bool do_cov_area_norm = false;
@@ -887,7 +949,7 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
   }
 
   // PLOT W Sideband Fit
-  if (true) {
+  if (false) {
     const bool do_frac_unc = true;
     const bool do_cov_area_norm = false;
     const bool include_stat = true;
@@ -911,7 +973,7 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
 
     // Wexp distribution, stacked, all cuts except for W, pre-fit
     std::string tag;
-    double ymax = 440;
+    double ymax = 440000;
     double do_BWN = true;
     double do_postfit = false;
     Variable* var = GetVar(variables, sidebands::kFitVarString);
@@ -922,7 +984,6 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
         do_BWN, do_postfit);
 
     do_postfit = true;
-
     PlotWSidebandStacked(
         var, var->m_hists.m_wsideband_data, loW_fit_wgt, midW_fit_wgt,
         hiW_fit_wgt, var->GetStackArray(static_cast<WSidebandType>(0)),
@@ -989,7 +1050,7 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
   }
 
   // PLOT unfolded
-  if (true) {
+  if (false) {
     const bool do_frac_unc = true;
     const bool include_stat = true;
     const bool do_cov_area_norm = false;
@@ -1013,7 +1074,7 @@ void plotCrossSectionFromFile(int signal_definition_int = 1,
   }
 
   // PLOT cross section
-  if (true) {
+  if (false) {
     const bool do_frac_unc = true;
     const bool include_stat = true;
     const bool do_cov_area_norm = false;

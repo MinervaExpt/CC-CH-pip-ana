@@ -100,7 +100,7 @@ void LoopAndFillData(const CCPi::MacroUtil& util,
     pass = pass && util.m_data_universe->GetVecElem("vtx", 2) <
                        signal_definition.m_ZVtxMaxCutVal;
     pass = pass && util.m_data_universe->GetInt("isMinosMatchTrack") == 1;
-    //pass = pass && util.m_data_universe->GetBool("isMinosMatchTrack");
+    // pass = pass && util.m_data_universe->GetBool("isMinosMatchTrack");
     pass = pass &&
            util.m_data_universe->GetDouble("MasterAnaDev_minos_trk_qp") < 0.0;
     pass = pass &&
@@ -349,18 +349,19 @@ void ScaleBG(Variable* var, CCPi::MacroUtil& util, const CVHW& loW_wgt,
 // Main
 //==============================================================================
 void crossSectionDataFromFile(int signal_definition_int = 1,
-                              const char* plist = "ME1A",
+                              const char* plist = "ALL",
                               const bool do_test_playlist = false) {
   //============================================================================
   // Setup
   //============================================================================
 
   // I/O
-  TFile fin("MCXSecInputs_1010_ME1A_0_2024-09-18.root", "READ");
+  TFile fin("MCXSecInputs_20250117_ALL_mix_CCPiWeightNoSys_p4.root", "READ");
   std::cout << "Reading input from " << fin.GetName() << endl;
 
-  TFile fout("DataXSecInputs_1010_ME1A_0_2024-09-18.root", "RECREATE");
- std::cout << "Output file is " << fout.GetName() << "\n";
+  TFile fout("DataXSecInputs_20250117_ALL_mix_CCPiWeightNoSys_p4.root",
+             "RECREATE");
+  std::cout << "Output file is " << fout.GetName() << "\n";
 
   std::cout << "Copying all hists from fin to fout\n";
   CopyHists(fin, fout);
@@ -510,22 +511,21 @@ void crossSectionDataFromFile(int signal_definition_int = 1,
     PlotUtils::MnvH1D* bg_sub_data =
         (PlotUtils::MnvH1D*)var->m_hists.m_bg_subbed_data->Clone(uniq());
     int n_iterations = 4;
-    if (var->Name() == "mixtpi") n_iterations =10;
+    if (var->Name() == "mixtpi") n_iterations = 10;
     if (var->Name() == "mixthetapi_deg") n_iterations = 10;
-    if (var->Name() == "ptmu") n_iterations =10;
+    if (var->Name() == "ptmu") n_iterations = 8;
     if (var->Name() == "q2") n_iterations = 10;
     if (var->Name() == "wexp") n_iterations = 10;
 
     mnv_unfold.UnfoldHisto(var->m_hists.m_unfolded, migration, bg_sub_data,
                            RooUnfold::kBayes, n_iterations);
 
-
     // copypasta
     // Blurgh. We want the covariance matrix induced by the unfolding,
     // but MnvUnfold will only give that back to us with a call to a
     // different version of UnfoldHisto that only takes a TH1D, and
     // not a MnvH1D (so we can't just combine it with the previous call)
-    TMatrixD unfolding_cov_matrix_orig;    
+    TMatrixD unfolding_cov_matrix_orig;
     TH1D* unfolded_dummy =
         new TH1D(var->m_hists.m_unfolded->GetCVHistoWithStatError());
     TH2D* migration_dummy = new TH2D(migration->GetCVHistoWithStatError());
@@ -542,30 +542,34 @@ void crossSectionDataFromFile(int signal_definition_int = 1,
     var->m_hists.m_unfolded->PushCovMatrix(
         Form("unfolding_cov_matrix_%s", name), unfolding_cov_matrix_orig);
 
-    // Making the statistical modifications according to the Warping studies 
-    // results. 
+    // Making the statistical modifications according to the Warping studies
+    // results.
 
     double uncfactor;
-/*    if (name == "mixtpi"){
-      uncfactor = 5.7;
-      var->m_hists.m_unfolded->ModifyStatisticalUnc(uncfactor,
-					  Form("unfolding_cov_matrix_%s", name));
-    }
-    if (name == "mixthetapi_deg") {
-      uncfactor = 10.2;
-      var->m_hists.m_unfolded->ModifyStatisticalUnc(uncfactor,
-					  Form("unfolding_cov_matrix_%s", name));
-    } 
-    if (name == "q2"){
-      uncfactor = 6.9;
-      var->m_hists.m_unfolded->ModifyStatisticalUnc(uncfactor, 
-					  Form("unfolding_cov_matrix_%s", name));
-    }
-    if (name == "ptmu"){
-      uncfactor = 7.9;
-      var->m_hists.m_unfolded->ModifyStatisticalUnc(uncfactor, 
-				          Form("unfolding_cov_matrix_%s", name));
-    }*/
+    /*    if (name == "mixtpi"){
+          uncfactor = 5.7;
+          var->m_hists.m_unfolded->ModifyStatisticalUnc(uncfactor,
+                                              Form("unfolding_cov_matrix_%s",
+       name));
+        }
+        if (name == "mixthetapi_deg") {
+          uncfactor = 10.2;
+          var->m_hists.m_unfolded->ModifyStatisticalUnc(uncfactor,
+                                              Form("unfolding_cov_matrix_%s",
+       name));
+        }
+        if (name == "q2"){
+          uncfactor = 6.9;
+          var->m_hists.m_unfolded->ModifyStatisticalUnc(uncfactor,
+                                              Form("unfolding_cov_matrix_%s",
+       name));
+        }
+        if (name == "ptmu"){
+          uncfactor = 7.9;
+          var->m_hists.m_unfolded->ModifyStatisticalUnc(uncfactor,
+                                              Form("unfolding_cov_matrix_%s",
+       name));
+        }*/
 
     // Write unfolded
     fout.cd();
@@ -692,8 +696,10 @@ void crossSectionDataFromFile(int signal_definition_int = 1,
 
     // targets and POT norm
     static const double apothem = 850.;
-    static const double upstream = util.m_signal_definition.m_ZVtxMinCutVal;    // ~module 25 plane 1
-    static const double downstream = util.m_signal_definition.m_ZVtxMaxCutVal;  // ~module 81 plane 1
+    static const double upstream =
+        util.m_signal_definition.m_ZVtxMinCutVal;  // ~module 25 plane 1
+    static const double downstream =
+        util.m_signal_definition.m_ZVtxMaxCutVal;  // ~module 81 plane 1
 
     double n_target_nucleons =
         PlotUtils::TargetUtils::Get().GetTrackerNNucleons(upstream, downstream,

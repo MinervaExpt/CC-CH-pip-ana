@@ -210,7 +210,7 @@ PlotUtils::MnvH1D* RebinQ2Plot(const PlotUtils::MnvH1D& old_hist) {
   const TArrayD old_bins_array = *(old_hist.GetXaxis()->GetXbins());
   const int n_old_bins = old_bins_array.GetSize();
 
-  // std::cout << "size of old hist bin array " << n_old_bins << "\n";
+  //  std::cout << "size of old hist bin array " << n_old_bins << "\n";
 
   TArrayD new_bins_array = old_bins_array;
 
@@ -368,17 +368,18 @@ PlotUtils::MnvH1D* RebinningtoGeV(const PlotUtils::MnvH1D& old_hist,
                                   std::string var) {
   int nbins = old_hist.GetNbinsX();
   int x = 1;
-  //  if (var == "pmu"){
-  //    nbins = nbins-1;
-  //    x=2;
-  //  }
+  int start = 0;
+  if (var == "pmu") {
+    nbins = nbins - 1;
+    x = 2;
+    start = 1;
+  }
   TArrayD old_bins_array = *(old_hist.GetXaxis()->GetXbins());
   TArrayD new_bins_array = old_bins_array;
   std::string name = old_hist.GetName();
   for (int i = 0; i < nbins + 1; i++) {
-    new_bins_array[i] = new_bins_array[i] / 1000;
+    new_bins_array[i] = new_bins_array[i + start] / 1000;
   }
-
   std::string new_name = Form("%s_%s", old_hist.GetName(), "_rebin");
   PlotUtils::MnvH1D* new_hist = new PlotUtils::MnvH1D(
       new_name.c_str(), old_hist.GetTitle(), new_bins_array.GetSize() - x,
@@ -387,6 +388,9 @@ PlotUtils::MnvH1D* RebinningtoGeV(const PlotUtils::MnvH1D& old_hist,
   new_hist->SetLineColor(old_hist.GetLineColor());
   new_hist->SetLineStyle(old_hist.GetLineStyle());
   new_hist->SetLineWidth(old_hist.GetLineWidth());
+
+  new_hist->SetFillColor(old_hist.GetFillColor());
+  new_hist->SetFillStyle(old_hist.GetFillStyle());
 
   new_hist->SetMarkerColor(old_hist.GetMarkerColor());
   new_hist->SetMarkerStyle(old_hist.GetMarkerStyle());
@@ -401,16 +405,16 @@ PlotUtils::MnvH1D* RebinningtoGeV(const PlotUtils::MnvH1D& old_hist,
   // TECHNICALLY CORRECY
   // CV
   for (int i = 1; i <= nbins + 1; i++) {
-    new_hist->SetBinContent(i, old_hist.GetBinContent(i));
-    new_hist->SetBinError(i, old_hist.GetBinError(i));
+    new_hist->SetBinContent(i, old_hist.GetBinContent(i + start));
+    new_hist->SetBinError(i, old_hist.GetBinError(i + start));
   }
   new_hist->SetBinContent(0, 0.);
   new_hist->SetBinError(0, 0.);
 
   // ASSERT CV
   for (int i = 1; i < nbins + 1; i++) {
-    assert(new_hist->GetBinContent(i) == old_hist.GetBinContent(i));
-    assert(new_hist->GetBinError(i) == old_hist.GetBinError(i));
+    assert(new_hist->GetBinContent(i) == old_hist.GetBinContent(i + start));
+    assert(new_hist->GetBinError(i) == old_hist.GetBinError(i + start));
   }
   // Universes
   for (auto error_name : old_hist.GetVertErrorBandNames()) {
@@ -422,8 +426,10 @@ PlotUtils::MnvH1D* RebinningtoGeV(const PlotUtils::MnvH1D& old_hist,
       TH1D* univ_i_hist_old =
           new TH1D(*old_hist.GetVertErrorBand(error_name)->GetHist(univ_i));
       for (int i = 1; i < nbins + 1; i++) {
-        univ_i_hist_new->SetBinContent(i, univ_i_hist_old->GetBinContent(i));
-        univ_i_hist_new->SetBinError(i, univ_i_hist_old->GetBinError(i));
+        univ_i_hist_new->SetBinContent(
+            i, univ_i_hist_old->GetBinContent(i + start));
+        univ_i_hist_new->SetBinError(i,
+                                     univ_i_hist_old->GetBinError(i + start));
       }
 
       univ_i_hist_new->SetBinContent(0, 0.);
@@ -451,9 +457,9 @@ PlotUtils::MnvH1D* RebinningtoGeV(const PlotUtils::MnvH1D& old_hist,
         //                  << univ_i_hist_new->GetBinError(new_bin_idx) << " =
         //                  " << univ_i_hist_old->GetBinError(i) << "\n";
         assert(univ_i_hist_new->GetBinContent(new_bin_idx) ==
-               univ_i_hist_old->GetBinContent(i));
+               univ_i_hist_old->GetBinContent(i + start));
         assert(univ_i_hist_new->GetBinError(new_bin_idx) ==
-               univ_i_hist_old->GetBinError(i));
+               univ_i_hist_old->GetBinError(i + start));
       }
       delete univ_i_hist_old;
     }
@@ -466,8 +472,10 @@ PlotUtils::MnvH1D* RebinningtoGeV(const PlotUtils::MnvH1D& old_hist,
       TH1* univ_i_hist_new = new_hist->GetUncorrError(error_name);
       TH1D* univ_i_hist_old = new TH1D(*old_hist.GetUncorrError(error_name));
       for (int i = 1; i < nbins + 1; i++) {
-        univ_i_hist_new->SetBinContent(i, univ_i_hist_old->GetBinContent(i));
-        univ_i_hist_new->SetBinError(i, univ_i_hist_old->GetBinError(i));
+        univ_i_hist_new->SetBinContent(
+            i, univ_i_hist_old->GetBinContent(i + start));
+        univ_i_hist_new->SetBinError(i,
+                                     univ_i_hist_old->GetBinError(i + start));
       }
 
       univ_i_hist_new->SetBinContent(0, 0.);
@@ -491,9 +499,9 @@ PlotUtils::MnvH1D* RebinningtoGeV(const PlotUtils::MnvH1D& old_hist,
         //          << univ_i_hist_new->GetBinError(new_bin_idx) << " = " <<
         //          univ_i_hist_old->GetBinError(i) << "\n";
         assert(univ_i_hist_new->GetBinContent(new_bin_idx) ==
-               univ_i_hist_old->GetBinContent(i));
+               univ_i_hist_old->GetBinContent(i + start));
         assert(univ_i_hist_new->GetBinError(new_bin_idx) ==
-               univ_i_hist_old->GetBinError(i));
+               univ_i_hist_old->GetBinError(i + start));
       }
       delete univ_i_hist_old;
     }
@@ -530,7 +538,7 @@ void SetErrorGroups(MnvPlotter& mnv_plotter, bool is_subgroups) {
     mnv_plotter.error_summary_group_map["Muon"].push_back(
         "MuonAngleYResolution");
     mnv_plotter.error_summary_group_map["Muon"].push_back("MuonResolution");
-    mnv_plotter.error_summary_group_map["Pion_Reconstruction"].push_back(
+    mnv_plotter.error_summary_group_map["Pion Reconstruction"].push_back(
         "MichelEfficiency");
     //  mnv_plotter.error_summary_group_map["GENIE"].push_back("GENIE_D2_MaRES");
     //  mnv_plotter.error_summary_group_map["GENIE"].push_back("GENIE_EP_MvRES");
@@ -548,82 +556,82 @@ void SetErrorGroups(MnvPlotter& mnv_plotter, bool is_subgroups) {
     mnv_plotter.error_summary_group_map["Others"].push_back("GEANT_Proton");
     mnv_plotter.error_summary_group_map["Others"].push_back("GEANT_Pion");
     mnv_plotter.error_summary_group_map["Others"].push_back("GEANT_Neutron");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "GENIE_D2_NormCCRES");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "DiffractiveModelUnc");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "CoherentPiUnc_C");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "CoherentPiUnc_CH");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "CoherentPiUnc_Fe");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "CoherentPiUnc_H2O");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "CoherentPiUnc_Pb");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "GENIE_Rvn1pi");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "GENIE_Rvp1pi");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "GENIE_Rvn2pi");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "GENIE_Rvp2pi");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "RPA_LowQ2");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "RPA_HighQ2");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "Low_Recoil_2p2h_Tune");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "CCPi+ Tune");
     for (auto g : systematics::kGenieSystematics_InteractionModel)
-      mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(g);
+      mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(g);
     // for(auto g : systematics::kGenieSystematics_FSI)
     //  mnv_plotter.error_summary_group_map["Genie_FSI"].push_back(g);
 
     for (auto g : systematics::kGenieSystematics_FSI_nucleons)
-      mnv_plotter.error_summary_group_map["GENIE_FSI"].push_back(g);
+      mnv_plotter.error_summary_group_map["GENIE FSI"].push_back(g);
 
     for (auto g : systematics::kGenieSystematics_FSI_pions)
-      mnv_plotter.error_summary_group_map["GENIE_FSI"].push_back(g);
+      mnv_plotter.error_summary_group_map["GENIE FSI"].push_back(g);
 
     // mnv_plotter.error_summary_group_map["Detector"].push_back("EmuRangeCurve");
     // mnv_plotter.error_summary_group_map["Detector"].push_back("PartResp");
-    mnv_plotter.error_summary_group_map["Pion_Reconstruction"].push_back(
+    mnv_plotter.error_summary_group_map["Pion Reconstruction"].push_back(
         "TrackAngle");
     mnv_plotter.error_summary_group_map["Muon"].push_back("BeamAngle");
     mnv_plotter.error_summary_group_map["Muon"].push_back("BeamAngleX");
     mnv_plotter.error_summary_group_map["Muon"].push_back("BeamAngleY");
-    mnv_plotter.error_summary_group_map["Pion_Reconstruction"].push_back(
+    mnv_plotter.error_summary_group_map["Pion Reconstruction"].push_back(
         "Birks");
-    mnv_plotter.error_summary_group_map["Pion_Reconstruction"].push_back(
+    mnv_plotter.error_summary_group_map["Pion Reconstruction"].push_back(
         "BetheBloch");
-    mnv_plotter.error_summary_group_map["Pion_Reconstruction"].push_back(
+    mnv_plotter.error_summary_group_map["Pion Reconstruction"].push_back(
         "Mass");
-    mnv_plotter.error_summary_group_map["Pion_Reconstruction"].push_back(
+    mnv_plotter.error_summary_group_map["Pion Reconstruction"].push_back(
         "NodeCutEff");
 
-    mnv_plotter.error_summary_group_map["Pion_Reconstruction"].push_back(
+    mnv_plotter.error_summary_group_map["Pion Reconstruction"].push_back(
         "TpiFromMichelRangeFit");
-    mnv_plotter.error_summary_group_map["Pion_Reconstruction"].push_back(
+    mnv_plotter.error_summary_group_map["Pion Reconstruction"].push_back(
         "UntrackedPi");
   }
   if (is_subgroups) {
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "NonRESPi");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "MnvTunes");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "CCQE");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "RESPi");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "Coherent-Diffractive");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "DIS-Hadronization");
-    mnv_plotter.error_summary_group_map["Cross_Section_Models"].push_back(
+    mnv_plotter.error_summary_group_map["Cross Section Models"].push_back(
         "Elastic");
 
     mnv_plotter.error_summary_group_map["NonRESPi"].push_back("GENIE_Rvn1pi");
@@ -699,7 +707,9 @@ void Plot_ErrorGroup(Plotter p, PlotUtils::MnvH1D* h,
   TCanvas canvas("c1", "c1");
 
   p.m_mnv_plotter.good_colors = MnvColors::GetColors(MnvColors::k36Palette);
-  if (error_group_name == "GENIE_FSI") p.m_mnv_plotter.legend_n_columns = 2;
+  p.m_mnv_plotter.legend_n_columns = 2;
+  p.m_mnv_plotter.legend_offset_x = -0.03;
+  if (error_group_name == "GENIE FSI") p.m_mnv_plotter.legend_n_columns = 2;
   // Clone hist
   PlotUtils::MnvH1D* hist = nullptr;
 
@@ -723,7 +733,7 @@ void Plot_ErrorGroup(Plotter p, PlotUtils::MnvH1D* h,
   }
 
   // const char* legend_position = error_group_name == "" ? "N" : "TR";
-  const char* legend_position = "TR";
+  const char* legend_position = "TL";
 
   if (error_group_name == "LEGENDONLY") {
     p.m_mnv_plotter.axis_maximum = 1000;
@@ -750,7 +760,7 @@ void Plot_ErrorGroup(Plotter p, PlotUtils::MnvH1D* h,
            GetSignalFileTag(p.m_signal_definition).c_str(),
            error_group_name.c_str());
 
-  p.m_mnv_plotter.MultiPrint(&canvas, outfile_name, "png");
+  p.m_mnv_plotter.MultiPrint(&canvas, outfile_name, "pdf");
 }
 
 // Deprecated?
@@ -769,14 +779,14 @@ void Plot_ErrorSummary(Plotter p, PlotUtils::MnvH1D* hist, std::string tag) {
   //  // Plot_ErrorGroup(p, hist, "GENIE", tag.c_str(), 0.0, 0.3);
   //  //  Plot_ErrorGroup(p, hist, "Target", tag.c_str(), 0.0, 0.3);
   //  Plot_ErrorGroup(p, hist, "Others", tag.c_str(), 0.0, 0.3);
-  //  Plot_ErrorGroup(p, hist, "Cross_Section_Models", tag.c_str(), 0.0, 0.3);
+  //  Plot_ErrorGroup(p, hist, "Cross Section Models", tag.c_str(), 0.0, 0.3);
   //  //  Plot_ErrorGroup(p, hist, "PhysicsModel", tag.c_str(), 0.0, 0.3);
 
   Plot_ErrorGroup(p, hist, "", tag.c_str(), 0.0, 0.7);
   //  Plot_ErrorGroup(p, hist, "Detector", "CrossSection", 0.0, 0.1);
-  Plot_ErrorGroup(p, hist, "Pion_Reconstruction", tag.c_str(), 0.0, 0.3);
+  Plot_ErrorGroup(p, hist, "Pion Reconstruction", tag.c_str(), 0.0, 0.3);
   Plot_ErrorGroup(p, hist, "Flux", tag.c_str(), 0.02, 0.3);
-  Plot_ErrorGroup(p, hist, "GENIE_FSI", tag.c_str(), 0.02, 0.3);
+  Plot_ErrorGroup(p, hist, "GENIE FSI", tag.c_str(), 0.02, 0.3);
   Plot_ErrorGroup(p, hist, "Muon", tag.c_str(), 0.02, 0.3);
   Plot_ErrorGroup(p, hist, "Others", tag.c_str(), 0.02, 0.3);
 
@@ -789,7 +799,7 @@ void Plot_ErrorSummary(Plotter p, PlotUtils::MnvH1D* hist, std::string tag) {
   AddingGroups(p.m_mnv_plotter, *hist, "Elastic");
 
   SetErrorGroups(p.m_mnv_plotter, true);
-  Plot_ErrorGroup(p, hist, "Cross_Section_Models", tag.c_str(), 0.02, 0.3);
+  Plot_ErrorGroup(p, hist, "Cross Section Models", tag.c_str(), 0.02, 0.3);
   Plot_ErrorGroup(p, hist, "RESPi", tag.c_str(), 0.02, 0.3);
   Plot_ErrorGroup(p, hist, "NonRESPi", tag.c_str(), 0.02, 0.3);
   Plot_ErrorGroup(p, hist, "CCQE", tag.c_str(), 0.02, 0.3);
@@ -952,14 +962,14 @@ void PlotVar_ErrorSummary(Plotter p) {
   //  //  Plot_ErrorGroup(p, sel, "GENIE", "Sel", 0.0, 0.30);
   //  //  Plot_ErrorGroup(p, sel, "Target", "Sel", 0.0, 0.15);
   //  Plot_ErrorGroup(p, sel, "Others", "Sel", 0.0, 0.05);
-  //  Plot_ErrorGroup(p, sel, "Cross_Section_Models", "Sel", 0.0, 0.15);
+  //  Plot_ErrorGroup(p, sel, "Cross Section Models", "Sel", 0.0, 0.15);
   //  //  Plot_ErrorGroup(p, sel, "PhysicsModel", "Sel", 0.0, 0.15);
   //  Plot_ErrorGroup(p, sel, "LEGENDONLY", "Sel", 0.0, 0.1);
   Plot_ErrorGroup(p, sel, "", "Sel", 0.0, 0.4);
   //  Plot_ErrorGroup(p, sel, "Detector", "Sel", 0.0, 0.1);
-  Plot_ErrorGroup(p, sel, "Pion_Reconstruction", "Sel", 0.0, 0.1);
+  Plot_ErrorGroup(p, sel, "Pion Reconstruction", "Sel", 0.0, 0.1);
   Plot_ErrorGroup(p, sel, "Flux", "Sel", 0.0, 0.15);
-  Plot_ErrorGroup(p, sel, "GENIE_FSI", "Sel", 0.0, 0.2);
+  Plot_ErrorGroup(p, sel, "GENIE FSI", "Sel", 0.0, 0.2);
   Plot_ErrorGroup(p, sel, "Muon", "Sel", 0.0, 0.2);
   Plot_ErrorGroup(p, sel, "Others", "Sel", 0.0, 0.03);
 
@@ -972,7 +982,7 @@ void PlotVar_ErrorSummary(Plotter p) {
   AddingGroups(p.m_mnv_plotter, *sel, "Elastic");
 
   SetErrorGroups(p.m_mnv_plotter, true);
-  Plot_ErrorGroup(p, sel, "Cross_Section_Models", "Sel", 0.0, 0.12);
+  Plot_ErrorGroup(p, sel, "Cross Section Models", "Sel", 0.0, 0.12);
   Plot_ErrorGroup(p, sel, "RESPi", "Sel", 0.0, 0.07);
   Plot_ErrorGroup(p, sel, "NonRESPi", "Sel", 0.0, 0.1);
   Plot_ErrorGroup(p, sel, "CCQE", "Sel", 0.0, 0.05);
@@ -1186,7 +1196,7 @@ void PlotBGSub_ErrorSummary(Plotter p) {
   //  //  Plot_ErrorGroup(p, bg_sub_data, "GENIE", "BGSub", 0.0, 0.3);
   //  //  Plot_ErrorGroup(p, bg_sub_data, "Target", "BGSub", 0.0, 0.3);
   //  Plot_ErrorGroup(p, bg_sub_data, "Others", "BGSub", 0.0, 0.3);
-  //  Plot_ErrorGroup(p, bg_sub_data, "Cross_Section_Models", "BGSub", 0.0,
+  //  Plot_ErrorGroup(p, bg_sub_data, "Cross Section Models", "BGSub", 0.0,
   //  0.05);
   //  //  Plot_ErrorGroup(p, bg_sub_data, "PhysicsModel", "BGSub", 0.0, 0.02);
   //  Plot_ErrorGroup(p, bg_sub_data, "Muon", "BGSub", 0.0, 0.3);
@@ -1194,9 +1204,9 @@ void PlotBGSub_ErrorSummary(Plotter p) {
   //  Plot_ErrorGroup(p, bg_sub_data, "LEGENDONLY", "BGSub", 0.0, 0.1);
   Plot_ErrorGroup(p, bg_sub_data, "", "BGSub", 0.0, 0.3);
   //  Plot_ErrorGroup(p, bg_sub_data, "Detector", "BGSub", 0.0, 0.1);
-  Plot_ErrorGroup(p, bg_sub_data, "Pion_Reconstruction", "BGSub", 0.0, 0.1);
+  Plot_ErrorGroup(p, bg_sub_data, "Pion Reconstruction", "BGSub", 0.0, 0.1);
   Plot_ErrorGroup(p, bg_sub_data, "Flux", "BGSub", 0.0, 0.2);
-  Plot_ErrorGroup(p, bg_sub_data, "GENIE_FSI", "BGSub", 0.0, 0.1);
+  Plot_ErrorGroup(p, bg_sub_data, "GENIE FSI", "BGSub", 0.0, 0.1);
   Plot_ErrorGroup(p, bg_sub_data, "Muon", "BGSub", 0.0, 0.3);
   Plot_ErrorGroup(p, bg_sub_data, "Others", "BGSub", 0.0, 0.20);
 
@@ -1209,7 +1219,7 @@ void PlotBGSub_ErrorSummary(Plotter p) {
   AddingGroups(p.m_mnv_plotter, *bg_sub_data, "Elastic");
 
   SetErrorGroups(p.m_mnv_plotter, true);
-  Plot_ErrorGroup(p, bg_sub_data, "Cross_Section_Models", "BGSub", 0.0, 0.25);
+  Plot_ErrorGroup(p, bg_sub_data, "Cross Section Models", "BGSub", 0.0, 0.25);
   Plot_ErrorGroup(p, bg_sub_data, "RESPi", "BGSub", 0.0, 0.25);
   Plot_ErrorGroup(p, bg_sub_data, "NonRESPi", "BGSub", 0.0, 0.1);
   Plot_ErrorGroup(p, bg_sub_data, "CCQE", "BGSub", 0.0, 0.2);
@@ -1348,16 +1358,16 @@ void PlotUnfolded_ErrorSummary(Plotter p) {
   //  //  Plot_ErrorGroup(p, unf, "GENIE", "Unfolded", 0.0, 0.26);
   //  //  Plot_ErrorGroup(p, unf, "Target", "Unfolded", 0.0, 0.1);
   //  Plot_ErrorGroup(p, unf, "Others", "Unfolded", 0.0, 0.24);
-  //  Plot_ErrorGroup(p, unf, "Cross_Section_Models", "Unfolded", 0.0, 0.02);
+  //  Plot_ErrorGroup(p, unf, "Cross Section Models", "Unfolded", 0.0, 0.02);
   //  //  Plot_ErrorGroup(p, unf, "PhysicsModel", "Unfolded", 0.0, 0.02);
   //  Plot_ErrorGroup(p, unf, "Muon", "Unfolded", 0.0, 0.2);
 
   //  Plot_ErrorGroup(p, unf, "LEGENDONLY", "Unfolded", 0.0, 0.1);
   Plot_ErrorGroup(p, unf, "", "Unfolded", 0.0, 0.4);
   //  Plot_ErrorGroup(p, unf, "Detector", "Unfolded", 0.0, 0.1);
-  Plot_ErrorGroup(p, unf, "Pion_Reconstruction", "Unfolded", 0.0, 0.08);
+  Plot_ErrorGroup(p, unf, "Pion Reconstruction", "Unfolded", 0.0, 0.08);
   Plot_ErrorGroup(p, unf, "Flux", "Unfolded", 0.0, 0.15);
-  Plot_ErrorGroup(p, unf, "GENIE_FSI", "Unfolded", 0.0, 0.1);
+  Plot_ErrorGroup(p, unf, "GENIE FSI", "Unfolded", 0.0, 0.1);
   Plot_ErrorGroup(p, unf, "Muon", "Unfolded", 0.0, 0.25);
   Plot_ErrorGroup(p, unf, "Others", "Unfolded", 0.0, 0.15);
 
@@ -1370,7 +1380,7 @@ void PlotUnfolded_ErrorSummary(Plotter p) {
   AddingGroups(p.m_mnv_plotter, *unf, "Elastic");
 
   SetErrorGroups(p.m_mnv_plotter, true);
-  Plot_ErrorGroup(p, unf, "Cross_Section_Models", "Unfolded", 0.0, 0.2);
+  Plot_ErrorGroup(p, unf, "Cross Section Models", "Unfolded", 0.0, 0.2);
   Plot_ErrorGroup(p, unf, "RESPi", "Unfolded", 0.0, 0.15);
   Plot_ErrorGroup(p, unf, "NonRESPi", "Unfolded", 0.0, 0.1);
   Plot_ErrorGroup(p, unf, "CCQE", "Unfolded", 0.0, 0.2);
@@ -1395,22 +1405,31 @@ void Plot_CrossSection(Plotter p, MnvH1D* data, MnvH1D* mc,
 
   double uncfactor;
   if (name == "mixtpi") {
-    uncfactor = 5.7;
+    // uncfactor = 5.7;// Without CCPi weight
+    uncfactor = 6.5;  // Wight CCPi Weight
     data->ModifyStatisticalUnc(uncfactor,
                                Form("unfolding_cov_matrix_%s", name.c_str()));
   }
   if (name == "mixthetapi_deg") {
-    uncfactor = 10.2;
+    // uncfactor = 10.2;// Without CCPi weight
+    uncfactor = 6.2;  // Wight CCPi Weight
     data->ModifyStatisticalUnc(uncfactor,
                                Form("unfolding_cov_matrix_%s", name.c_str()));
   }
   if (name == "q2") {
-    uncfactor = 6.9;
+    // uncfactor = 6.9;// Without CCPi weight
+    uncfactor = 7.5;  // Wight CCPi Weight
     data->ModifyStatisticalUnc(uncfactor,
                                Form("unfolding_cov_matrix_%s", name.c_str()));
   }
   if (name == "ptmu") {
-    uncfactor = 7.9;
+    // uncfactor = 7.9;// Without CCPi weight
+    uncfactor = 7.3;  // Wight CCPi Weight
+    data->ModifyStatisticalUnc(uncfactor,
+                               Form("unfolding_cov_matrix_%s", name.c_str()));
+  }
+  if (name == "thetamu_deg") {
+    uncfactor = 15.2;  // Wight CCPi Weight
     data->ModifyStatisticalUnc(uncfactor,
                                Form("unfolding_cov_matrix_%s", name.c_str()));
   }
@@ -1636,22 +1655,31 @@ void PlotCrossSection_ErrorSummary(Plotter p) {
 
   double uncfactor;
   if (name == "mixtpi") {
-    uncfactor = 7.8;
+    // uncfactor = 5.7;// Without CCPi weight
+    uncfactor = 6.5;  // Wight CCPi Weight
     xsec->ModifyStatisticalUnc(uncfactor,
                                Form("unfolding_cov_matrix_%s", name.c_str()));
   }
   if (name == "mixthetapi_deg") {
-    uncfactor = 10.2;
+    // uncfactor = 10.2;// Without CCPi weight
+    uncfactor = 6.2;  // Wight CCPi Weight
     xsec->ModifyStatisticalUnc(uncfactor,
                                Form("unfolding_cov_matrix_%s", name.c_str()));
   }
   if (name == "q2") {
-    uncfactor = 6.9;
+    // uncfactor = 6.9;// Without CCPi weight
+    uncfactor = 7.5;  // Wight CCPi Weight
     xsec->ModifyStatisticalUnc(uncfactor,
                                Form("unfolding_cov_matrix_%s", name.c_str()));
   }
   if (name == "ptmu") {
-    uncfactor = 7.9;
+    // uncfactor = 7.9;// Without CCPi weight
+    uncfactor = 7.3;  // Wight CCPi Weight
+    xsec->ModifyStatisticalUnc(uncfactor,
+                               Form("unfolding_cov_matrix_%s", name.c_str()));
+  }
+  if (name == "thetamu_deg") {
+    uncfactor = 15.2;  // Wight CCPi Weight
     xsec->ModifyStatisticalUnc(uncfactor,
                                Form("unfolding_cov_matrix_%s", name.c_str()));
   }
@@ -1720,9 +1748,9 @@ void PlotCrossSection_ErrorSummary(Plotter p) {
   //  Plot_ErrorGroup(p, xsec, "LEGENDONLY", "CrossSection", 0.0, 0.1);
   Plot_ErrorGroup(p, xsec, "", "CrossSection", 0.0, total_max);
   //  Plot_ErrorGroup(p, xsec, "Detector", "CrossSection", 0.0, 0.1);
-  Plot_ErrorGroup(p, xsec, "Pion_Reconstruction", "CrossSection", 0.0, 0.8);
+  Plot_ErrorGroup(p, xsec, "Pion Reconstruction", "CrossSection", 0.0, 0.8);
   Plot_ErrorGroup(p, xsec, "Flux", "CrossSection", 0.0, 0.2);
-  Plot_ErrorGroup(p, xsec, "GENIE_FSI", "CrossSection", 0.0, 0.1);
+  Plot_ErrorGroup(p, xsec, "GENIE FSI", "CrossSection", 0.0, 0.1);
   Plot_ErrorGroup(p, xsec, "Muon", "CrossSection", 0.0, 0.3);
   Plot_ErrorGroup(p, xsec, "Others", "CrossSection", 0.0, 0.15);
 
@@ -1735,7 +1763,7 @@ void PlotCrossSection_ErrorSummary(Plotter p) {
   AddingGroups(p.m_mnv_plotter, *xsec, "Elastic");
 
   SetErrorGroups(p.m_mnv_plotter, true);
-  Plot_ErrorGroup(p, xsec, "Cross_Section_Models", "CrossSection", 0.0, 0.25);
+  Plot_ErrorGroup(p, xsec, "Cross Section Models", "CrossSection", 0.0, 0.25);
   Plot_ErrorGroup(p, xsec, "RESPi", "CrossSection", 0.0, 0.15);
   Plot_ErrorGroup(p, xsec, "NonRESPi", "CrossSection", 0.0, 0.1);
   Plot_ErrorGroup(p, xsec, "CCQE", "CrossSection", 0.0, 0.2);
@@ -1851,14 +1879,14 @@ void PlotWSidebandFit_ErrorSummary(Plotter p, PlotUtils::MnvH1D* hist,
   //  PlotWSidebandFit_ErrorGroup(p, "GENIE", hist, tag);
   //  PlotWSidebandFit_ErrorGroup(p, "Target", hist, tag);
   //  PlotWSidebandFit_ErrorGroup(p, "Others", hist, tag);
-  //  PlotWSidebandFit_ErrorGroup(p, "Cross_Section_Models", hist, tag);
+  //  PlotWSidebandFit_ErrorGroup(p, "Cross Section Models", hist, tag);
   //  PlotWSidebandFit_ErrorGroup(p, "PhysicsModel", hist, tag);
   //  PlotWSidebandFit_ErrorGroup(p, "Muon", hist, tag);
 
   PlotWSidebandFit_ErrorGroup(p, "", hist, tag);
-  PlotWSidebandFit_ErrorGroup(p, "Pion_Reconstruction", hist, tag);
+  PlotWSidebandFit_ErrorGroup(p, "Pion Reconstruction", hist, tag);
   PlotWSidebandFit_ErrorGroup(p, "Flux", hist, tag);
-  PlotWSidebandFit_ErrorGroup(p, "GENIE_FSI", hist, tag);
+  PlotWSidebandFit_ErrorGroup(p, "GENIE FSI", hist, tag);
   PlotWSidebandFit_ErrorGroup(p, "Muon", hist, tag);
   PlotWSidebandFit_ErrorGroup(p, "Others", hist, tag);
 
@@ -1871,7 +1899,7 @@ void PlotWSidebandFit_ErrorSummary(Plotter p, PlotUtils::MnvH1D* hist,
   AddingGroups(p.m_mnv_plotter, *hist, "Elastic");
 
   SetErrorGroups(p.m_mnv_plotter, true);
-  PlotWSidebandFit_ErrorGroup(p, "Cross_Section_Models", hist, tag);
+  PlotWSidebandFit_ErrorGroup(p, "Cross Section Models", hist, tag);
   PlotWSidebandFit_ErrorGroup(p, "RESPi", hist, tag);
   PlotWSidebandFit_ErrorGroup(p, "NonRESPi", hist, tag);
   PlotWSidebandFit_ErrorGroup(p, "CCQE", hist, tag);
@@ -1888,13 +1916,35 @@ void PlotWSidebandStacked(
     SignalDefinition signal_definition, std::string tag = "", double ymax = -1,
     bool do_bin_width_norm = true, bool do_postfit = false) {
   // Never don't clone when plotting
-  PlotUtils::MnvH1D* data = (PlotUtils::MnvH1D*)h_data->Clone("data");
   TObjArray array = *(TObjArray*)array_mc.Clone("mc");
   //  TObjArray* array = new TObjArray();
-
   array.RemoveRange(0, 3);
   array.Compress();
   std::cout << "Plotting " << variable->Name() << std::endl;
+
+  PlotUtils::MnvH1D* data = nullptr;
+  PlotUtils::MnvH1D* h_low_W = nullptr;
+  PlotUtils::MnvH1D* h_mid_W = nullptr;
+  PlotUtils::MnvH1D* h_hi_W = nullptr;
+
+  if (variable->Name() == "q2") {
+    // if (false) {
+    data = RebinQ2Plot(*h_data);
+    for (int i = 0; i <= 3; ++i) {
+      array[i] = RebinQ2Plot(*dynamic_cast<PlotUtils::MnvH1D*>(array[i]));
+    }
+  } else if (variable->Name() == "enu" || variable->Name() == "pmu" ||
+             variable->Name() == "ptmu" || variable->Name() == "pzmu" ||
+             variable->Name() == "wexp" || variable->Name() == "wexp_fit") {
+    data = RebinningtoGeV(*h_data, variable->Name());
+    for (int i = 0; i <= 3; ++i) {
+      array[i] = RebinningtoGeV(*dynamic_cast<PlotUtils::MnvH1D*>(array[i]),
+                                variable->Name());
+    }
+  } else {
+    data = (PlotUtils::MnvH1D*)h_data->Clone("data");
+  }
+
   PlotUtils::MnvPlotter mnvPlotter(PlotUtils::kCCNuPionIncStyle);
   if (ymax > 0) mnvPlotter.axis_maximum = ymax;
 
@@ -1913,7 +1963,7 @@ void PlotWSidebandStacked(
     for (auto h : array)
       dynamic_cast<PlotUtils::MnvH1D*>(h)->Scale(1., "width");
     //      array->Add(dynamic_cast<PlotUtils::MnvH1D*>(h));
-    y_label = "Events / MeV";
+    y_label = "Events / " + variable->m_units;
   }
   if (do_postfit) {
     dynamic_cast<PlotUtils::MnvH1D*>(array[1])->Scale(loW->GetBinContent(1));
@@ -1921,21 +1971,22 @@ void PlotWSidebandStacked(
     dynamic_cast<PlotUtils::MnvH1D*>(array[3])->Scale(hiW->GetBinContent(1));
   }
 
-  mnvPlotter.DrawDataStackedMC(data, &array, pot_scale, "TR", "Data", -1, -1,
-                               1001,
-                               Form("%s %s", variable->m_hists.m_xlabel.c_str(),
-                                    variable->m_units.c_str()),
-                               y_label.c_str());
+  mnvPlotter.DrawDataStackedMC(
+      data, &array, pot_scale, "TR", "Data", -1, -1, 1001,
+      Form("%s (%s)", variable->m_hists.m_xlabel.c_str(),
+           variable->m_units.c_str()),
+      y_label.c_str());
 
-  double arrow_height = data->GetBinContent(data->GetMaximumBin()) *
-                        data->GetNormBinWidth() /
-                        data->GetBinWidth(data->GetMaximumBin());
-  double arrow_location = signal_definition.m_w_max + 100.;
-  mnvPlotter.AddCutArrow(arrow_location, 0.0, 300, 200., "R");
+  double arrow_height = data->GetBinContent(data->GetMaximumBin()) * 1.1;
+  double arrow_location = signal_definition.m_w_max / 1000 + 0.1;
+  mnvPlotter.AddCutArrow(arrow_location, 0.0, arrow_height, 0.2, "R");
   //  mnvPlotter.WritePreliminary("TL");
-  mnvPlotter.AddPOTNormBox(data_pot, mc_pot, 0.3, 0.85);
+  // mnvPlotter.AddPOTNormBox(data_pot, 1.0, 300, 0.85);
+  mnvPlotter.WriteNorm("POT-Normalized", 0.3, 0.88, 0.03);
+  mnvPlotter.WriteNorm(Form("Data POT: %.2E", data_pot), 0.3, 0.88 - 0.03,
+                       0.03);
   mnvPlotter.AddHistoTitle(tag.c_str());
-  mnvPlotter.MultiPrint(&cE, label, "png");
+  mnvPlotter.MultiPrint(&cE, label, "pdf");
 }
 
 void PlotFittedW(const Variable* variable, const CVUniverse& universe,
@@ -2045,7 +2096,7 @@ void PlotFittedW(const Variable* variable, const CVUniverse& universe,
   std::string title = oss.str();
 
   mnvPlotter.AddHistoTitle(title.c_str());
-  mnvPlotter.MultiPrint(&cE, label, "png");
+  mnvPlotter.MultiPrint(&cE, label, "pdf");
 
   delete h_data;
   delete array;
@@ -2179,16 +2230,16 @@ void PlotBG_ErrorSummary(Plotter p, bool do_tuned = false) {
   //  //  Plot_ErrorGroup(p, bg, "GENIE", tuned_str, 0.0, 0.25);
   //  //  Plot_ErrorGroup(p, bg, "Target", tuned_str, 0.0, 0.15);
   //  Plot_ErrorGroup(p, bg, "Others", tuned_str, 0.0, 0.30);
-  //  Plot_ErrorGroup(p, bg, "Cross_Section_Models", tuned_str, 0.0, 0.05);
+  //  Plot_ErrorGroup(p, bg, "Cross Section Models", tuned_str, 0.0, 0.05);
   //  //  Plot_ErrorGroup(p, bg, "PhysicsModel", tuned_str, 0.0, 0.05);
   //  Plot_ErrorGroup(p, bg, "Muon", tuned_str, 0.0, 0.05);
 
   //  Plot_ErrorGroup(p, bg, "LEGENDONLY", tuned_str, 0.0, 0.1);
   Plot_ErrorGroup(p, bg, "", tuned_str, 0.0, 0.3);
   //  Plot_ErrorGroup(p, bg, "Detector", tuned_str, 0.0, 0.1);
-  Plot_ErrorGroup(p, bg, "Pion_Reconstruction", tuned_str, 0.0, 0.06);
+  Plot_ErrorGroup(p, bg, "Pion Reconstruction", tuned_str, 0.0, 0.06);
   Plot_ErrorGroup(p, bg, "Flux", tuned_str, 0.0, 0.2);
-  Plot_ErrorGroup(p, bg, "GENIE_FSI", tuned_str, 0.0, 0.15);
+  Plot_ErrorGroup(p, bg, "GENIE FSI", tuned_str, 0.0, 0.15);
   Plot_ErrorGroup(p, bg, "Muon", tuned_str, 0.0, 0.1);
   Plot_ErrorGroup(p, bg, "Others", tuned_str, 0.0, 0.05);
 
@@ -2201,7 +2252,7 @@ void PlotBG_ErrorSummary(Plotter p, bool do_tuned = false) {
   AddingGroups(p.m_mnv_plotter, *bg, "Elastic");
 
   SetErrorGroups(p.m_mnv_plotter, true);
-  Plot_ErrorGroup(p, bg, "Cross_Section_Models", tuned_str, 0.0, 0.25);
+  Plot_ErrorGroup(p, bg, "Cross Section Models", tuned_str, 0.0, 0.25);
   Plot_ErrorGroup(p, bg, "RESPi", tuned_str, 0.0, 0.25);
   Plot_ErrorGroup(p, bg, "NonRESPi", tuned_str, 0.0, 0.15);
   Plot_ErrorGroup(p, bg, "CCQE", tuned_str, 0.0, 0.1);
@@ -2462,7 +2513,7 @@ void PlotMC(PlotUtils::MnvH1D* doomyhist, Plotter p, std::string tag,
   // PlotUtils::MnvH1D* tmp_bg = nullptr;
   p.m_mnv_plotter.DrawMCWithErrorBand(
       hist);  // I think that this call only shows stat errors.
-  p.m_mnv_plotter.MultiPrint(&canvas, tag.c_str(), "png");
+  p.m_mnv_plotter.MultiPrint(&canvas, tag.c_str(), "pdf");
 }
 
 void PlotRatio(PlotUtils::MnvH1D* num, PlotUtils::MnvH1D* denom, std::string v,
@@ -2672,7 +2723,8 @@ void PlotMigration_AbsoluteBins(PlotUtils::MnvH2D* hist, std::string name) {
 
 void PlotMigration_VariableBins(PlotUtils::MnvH2D* hist, std::string name) {
   TGaxis::SetExponentOffset(-0.035, -0.048, "x");
-  TH2D* htmp = GetHistWithUnderOverFlow(hist);
+  // TH2D* htmp = GetHistWithUnderOverFlow(hist);
+  TH2D* htmp = (TH2D*)hist->Clone();
   TH2D* htmp2 = RowNormalize(htmp);
   htmp2->GetXaxis()->SetTitle(Form("%s %s", name.c_str(), "Reco"));
   htmp2->GetYaxis()->SetTitle(Form("%s %s", name.c_str(), "True"));
@@ -2711,7 +2763,7 @@ void PlotEfficiency_ErrorSummary(Plotter p) {
   //  //  Plot_ErrorGroup(p, eff, "GENIE", "Eff", 0.0, 0.15);
   //  //  Plot_ErrorGroup(p, eff, "Target", "Eff", 0.0, 0.15);
   //  Plot_ErrorGroup(p, eff, "Others", "Eff", 0.0, 0.03);
-  //  Plot_ErrorGroup(p, eff, "Cross_Section_Models", "Eff", 0.0, 0.04);
+  //  Plot_ErrorGroup(p, eff, "Cross Section Models", "Eff", 0.0, 0.04);
   //  //  Plot_ErrorGroup(p, eff, "PhysicsModel", "Eff", 0.0, 0.15);
   //  Plot_ErrorGroup(p, eff, "Muon", "Eff", 0.0, 0.05);
 
@@ -2720,9 +2772,9 @@ void PlotEfficiency_ErrorSummary(Plotter p) {
   //  Plot_ErrorGroup(p, eff, "LEGENDONLY", "Eff", 0.0, 0.1);
   Plot_ErrorGroup(p, eff, "", "Eff", 0.0, max);
   //  Plot_ErrorGroup(p, eff, "Detector", "Eff", 0.0, 0.1);
-  Plot_ErrorGroup(p, eff, "Pion_Reconstruction", "Eff", 0.0, 0.04);
+  Plot_ErrorGroup(p, eff, "Pion Reconstruction", "Eff", 0.0, 0.04);
   Plot_ErrorGroup(p, eff, "Flux", "Eff", 0.0, 0.01);
-  Plot_ErrorGroup(p, eff, "GENIE_FSI", "Eff", 0.0, 0.02);
+  Plot_ErrorGroup(p, eff, "GENIE FSI", "Eff", 0.0, 0.02);
   Plot_ErrorGroup(p, eff, "Muon", "Eff", 0.0, 0.08);
   Plot_ErrorGroup(p, eff, "Others", "Eff", 0.0, 0.03);
 
@@ -2735,7 +2787,7 @@ void PlotEfficiency_ErrorSummary(Plotter p) {
   AddingGroups(p.m_mnv_plotter, *eff, "Elastic");
 
   SetErrorGroups(p.m_mnv_plotter, true);
-  Plot_ErrorGroup(p, eff, "Cross_Section_Models", "Eff", 0.0, 0.05);
+  Plot_ErrorGroup(p, eff, "Cross Section Models", "Eff", 0.0, 0.05);
   Plot_ErrorGroup(p, eff, "RESPi", "Eff", 0.0, 0.1);
   Plot_ErrorGroup(p, eff, "NonRESPi", "Eff", 0.0, 0.02);
   Plot_ErrorGroup(p, eff, "CCQE", "Eff", 0.0, 0.01);

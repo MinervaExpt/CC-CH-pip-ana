@@ -43,7 +43,7 @@ std::vector<Variable*> GetOnePiVariables(bool include_truth_vars = true) {
       new HVar("thetapi_deg", "#theta_{#pi}", "deg",
                CCPi::GetBinning("thetapi_deg"), &CVUniverse::GetThetapiDeg);
 
-  Var* pmu = new Var("pmu", "p_{#mu}", "GeV", CCPi::GetBinning("pmu"),
+  Var* pmu = new Var("pmu", "p_{#mu}", "GeV/c", CCPi::GetBinning("pmu"),
                      &CVUniverse::GetPmu);
 
   Var* thetamu_deg =
@@ -53,7 +53,7 @@ std::vector<Variable*> GetOnePiVariables(bool include_truth_vars = true) {
   Var* enu = new Var("enu", "E_{#nu}", "GeV", CCPi::GetBinning("enu"),
                      &CVUniverse::GetEnu);
 
-  Var* q2 = new Var("q2", "Q^{2}", "GeV^{2}", CCPi::GetBinning("q2"),
+  Var* q2 = new Var("q2", "Q^{2}", "GeV^{2}/c^{2}", CCPi::GetBinning("q2"),
                     &CVUniverse::GetQ2);
 
   Var* q2_Aaron = new Var("q2_Aaron", "Q^{2}", "MeV^{2}",
@@ -62,17 +62,17 @@ std::vector<Variable*> GetOnePiVariables(bool include_truth_vars = true) {
   Var* q2_NoAaron = new Var("q2_NoAaron", "Q^{2}", "MeV^{2}",
                             CCPi::GetBinning("q2"), &CVUniverse::GetQ2);
 
-  Var* wexp = new Var("wexp", "W_{exp}", "MeV", CCPi::GetBinning("wexp"),
+  Var* wexp = new Var("wexp", "W_{exp}", "GeV/c^{2}", CCPi::GetBinning("wexp"),
                       &CVUniverse::GetWexp);
 
   Var* wexp_fit =
       new Var(sidebands::kFitVarString, wexp->m_hists.m_xlabel, wexp->m_units,
               CCPi::GetBinning("wexp_fit"), &CVUniverse::GetWexp);
 
-  Var* ptmu = new Var("ptmu", "p^{T}_{#mu}", "GeV", CCPi::GetBinning("ptmu"),
+  Var* ptmu = new Var("ptmu", "p^{T}_{#mu}", "GeV/c", CCPi::GetBinning("ptmu"),
                       &CVUniverse::GetPTmu);
 
-  Var* pzmu = new Var("pzmu", "p^{||}_{#mu}", "GeV", CCPi::GetBinning("pzmu"),
+  Var* pzmu = new Var("pzmu", "p^{||}_{#mu}", "GeV/c", CCPi::GetBinning("pzmu"),
                       &CVUniverse::GetPZmu);
 
   Var* mehreen_tpi =
@@ -148,11 +148,11 @@ std::vector<Variable*> GetOnePiVariables(bool include_truth_vars = true) {
               wexp->m_hists.m_bins_array, &CVUniverse::GetWexpTrue, is_true);
 
   Var* ptmu_true =
-      new Var("ptmu_true", "p^{T}_{#mu} True", "GeV",
+      new Var("ptmu_true", "p^{T}_{#mu} True", ptmu->m_units,
               ptmu->m_hists.m_bins_array, &CVUniverse::GetPTmuTrue, is_true);
 
   Var* pzmu_true =
-      new Var("pzmu_true", "p^{||}_{#mu} True", "GeV",
+      new Var("pzmu_true", "p^{||}_{#mu} True", pzmu->m_units,
               pzmu->m_hists.m_bins_array, &CVUniverse::GetPZmuTrue, is_true);
 
   Var* mehreen_tpi_true = new Var("mtpi_true", "Mehreen T_{#pi} True", "MeV",
@@ -331,11 +331,11 @@ void LoopAndFillMCXSecInputs(const UniverseMap& error_bands,
   for (Long64_t i_event = 0; i_event < n_entries; ++i_event) {
     if (i_event % (n_entries / 10) == 0)
       std::cout << (i_event / 1000) << "k " << std::endl;
-    // if (i_event == 2000) break;
-    //     if(i_event%1000==0) std::cout << i_event << " / " << n_entries <<
-    //     "\r"
-    //     << std::flush;
-    //   Variables that hold info about whether the CVU passes cuts
+    // if (i_event == 20000) break;
+    //      if(i_event%1000==0) std::cout << i_event << " / " << n_entries <<
+    //      "\r"
+    //      << std::flush;
+    //    Variables that hold info about whether the CVU passes cuts
     PassesCutsInfo cv_cuts_info;
     bool checked_cv = false;
     assert(!error_bands.at("cv").empty() &&
@@ -354,11 +354,15 @@ void LoopAndFillMCXSecInputs(const UniverseMap& error_bands,
                                                  true);
           /*if (event.m_is_signal && (universe->ShortName() == "cv" ||
           universe->ShortName() == "CCPi+ Tune")){
-          std::cout << "Event = " << i_event
+            int idx = universe->GetHighestEnergyTruePionIndex();
+            std::cout << "Event = " << i_event
                       << " Universe " <<universe->ShortName()<<" Tpi weight = "
-           << universe->GetChargedPionTuneWeight() << " IsSignal? = " <<
-                      event.m_is_signal <<"\n";
+            << universe->GetChargedPionTuneWeight(universe->GetTpiTrue(idx),
+          universe->GetQ2True()) << " IsSignal? = " << event.m_is_signal <<"\n";
             std::cout << "Weight = " << universe->GetWeight() << "\n";
+            std::cout << "Q^2 = " << universe->GetQ2True() << "\n";
+            std::cout << "tpi = " << universe->GetTpiTrue(idx) << "\n";
+            std::cout << "untraked tpi = " << universe->GetTrueTpi() << "\n";
           }*/
           //          if (event.m_is_signal) std::cout << "Event = " << i_event
           //          << " Q2 = " <<
@@ -552,14 +556,18 @@ void LoopAndFillMCXSecInputs(const UniverseMap& error_bands,
           }*/
           /*if (event.m_passes_cuts && (universe->ShortName() == "cv" ||
           universe->ShortName() == "CCPi+ Tune")){
+            int idx = universe->GetHighestEnergyTruePionIndex();
             std::cout << "Event = " << i_event
                       << " Universe " << universe->ShortName() << " Tpi = " <<
                       universe->GetMixedTpi(event.m_highest_energy_pion_idx) <<
           "\n"; std::cout << "Event = " << i_event
                       << " Universe " <<universe->ShortName()<<" Tpi weight = "
-           << universe->GetChargedPionTuneWeight() << " IsSignal? = " <<
-                      event.m_is_signal <<"\n";
+           << universe->GetChargedPionTuneWeight(universe->GetTpiTrue(idx),
+          universe->GetQ2True()) << " IsSignal? = " << event.m_is_signal <<"\n";
             std::cout << "Weight = " << universe->GetWeight() << "\n";
+            std::cout << "Q^2 = " << universe->GetQ2True() << "\n";
+            std::cout << "tpi = " << universe->GetTpiTrue(idx) << "\n";
+            std::cout << "untraked tpi = " << universe->GetTrueTpi() << "\n";
           }*/
           /*
           if (event.m_passes_cuts){
@@ -573,61 +581,72 @@ void LoopAndFillMCXSecInputs(const UniverseMap& error_bands,
           }
           */
           //        std::cout << "Event = " << i_event << "\n";
+
           /*
 
-
-          if (event.m_passes_trackless_cuts ||
-          event.m_passes_trackless_cuts_except_w ||
-          event.m_passes_all_cuts_except_w) {
-          if (universe->GetWexp() > 1400){ std::cout << "Event = "
-          << i_event << "\n"; std::cout << "event.m_passes_cuts = " <<
-            event.m_passes_cuts << "\n"; std::cout <<
-            "event.m_passes_all_cuts_except_w = " <<
-            event.m_passes_all_cuts_except_w << "\n"; std::cout <<
-            "event.m_passes_trackless_cuts = " << event.m_passes_trackless_cuts
-          <<
-            "\n"; std::cout << "event.m_passes_trackless_cuts_except_w = " <<
-            event.m_passes_trackless_cuts_except_w << "\n"; std::cout <<
-          "GetWexp = " << universe->GetWexp() << "\n"; std::cout <<
-          "GetTracklessWexp = "
-            << universe->GetTracklessWexp() << "\n"; std::cout <<
-          "GetTrackedWexp = " << universe->GetTrackedWexp() << "\n";
-            //            std::cout << "GetQ2 = " << universe->GetQ2() << "\n";
-            //            std::cout <<
-                        std::cout << "Is signal = " << event.m_is_signal <<
+                    //if (event.m_passes_trackless_cuts ||
+                    //event.m_passes_trackless_cuts_except_w ||
+                    //event.m_passes_all_cuts_except_w) {
+                    if (event.m_is_signal) {
+                    //if (event.m_passes_trackless_cuts) {
+                    if (universe->GetWexp() > 1400){ std::cout << "Event = "
+                    << i_event << "\n"; std::cout << "event.m_passes_cuts = " <<
+                      event.m_passes_cuts << "\n"; std::cout <<
+                      "event.m_passes_all_cuts_except_w = " <<
+                      event.m_passes_all_cuts_except_w << "\n"; std::cout <<
+                      "event.m_passes_trackless_cuts = " <<
+          event.m_passes_trackless_cuts
+                    <<
+                      "\n"; std::cout << "event.m_passes_trackless_cuts_except_w
+          = " << event.m_passes_trackless_cuts_except_w << "\n"; std::cout <<
+                    "GetWexp = " << universe->GetWexp() << "\n"; std::cout <<
+                    "GetTracklessWexp = "
+                      << universe->GetTracklessWexp() << "\n"; std::cout <<
+                    "GetTrackedWexp = " << universe->GetTrackedWexp() << "\n";
+                      //            std::cout << "GetQ2 = " << universe->GetQ2()
+          << "\n";
+                      //            std::cout <<
+                                  std::cout << "Is signal = " <<
+          event.m_is_signal <<
+                    "\n";
+                                }
+                      //          std::cout <<
+          "event.m_passes_trackless_sideband = " <<
+          //            event.m_passes_trackless_sideband << "\n";
+                      //          std::cout << "event.m_is_w_sideband = " <<
+          //            event.m_is_w_sideband << "\n";
+                      //          std::cout << "Tpi mixed = " <<
+          //            universe->GetMixedTpi(event.m_highest_energy_pion_idx)
+          << "\n";
+                      //          std::cout << "Tpi tracked = " <<
+          //            universe->GetTpi(event.m_highest_energy_pion_idx) <<
           "\n";
-                      }
-            //          std::cout << "event.m_passes_trackless_sideband = " <<
-            event.m_passes_trackless_sideband << "\n";
-            //          std::cout << "event.m_is_w_sideband = " <<
-            event.m_is_w_sideband << "\n";
-            //          std::cout << "Tpi mixed = " <<
-            universe->GetMixedTpi(event.m_highest_energy_pion_idx) << "\n";
-            //          std::cout << "Tpi tracked = " <<
-            universe->GetTpi(event.m_highest_energy_pion_idx) << "\n";
-            //          std::cout << "Tpi tracked true = " <<
-            universe->GetTpiTrue(universe->GetHighestEnergyTruePionIndex()) <<
-            "\n";
-            //          std::cout << "Tpi trackless = " <<
-            universe->GetTpiTrackless() << "\n";
-            //          std::cout << "Tpi trackless true = " <<
-            universe->GetTrueTpi() << "\n";
-            //          std::cout << "trackless_michels.m_bestdist = " <<
-            trackless_michels.m_bestdist << "\n";
-            //        std::cout << "universe->m_vtx_michels.m_bestdist = " <<
-            universe->GetBestDistance() << "\n";
-            //        std::cout <<
-            "universe->GetTpiUntracked(trackless_michels.m_bestdist) = " <<
-            universe->GetTpiUntracked(trackless_michels.m_bestdist) << "\n";
-            //        std::cout << "universe->GetTpiTrackless() = " <<
-            universe->GetTpiTrackless() << "\n";
-            //          universe->PrintArachneLink();
-            //          std::cout << "thetapi reco = " <<
-            universe->GetThetapitracklessDeg() << "\n";
-            //          std::cout << "thetapi truth = " <<
-            universe->GetThetapitracklessTrueDeg() << "\n";
-          }
-          */
+                      //          std::cout << "Tpi tracked true = " <<
+          // universe->GetTpiTrue(universe->GetHighestEnergyTruePionIndex()) <<
+          //            "\n";
+                      //          std::cout << "Tpi trackless = " <<
+          //            universe->GetTpiTrackless() << "\n";
+                      //          std::cout << "Tpi trackless true = " <<
+          //            universe->GetTrueTpi() << "\n";
+                      //          std::cout << "trackless_michels.m_bestdist = "
+          <<
+          //            trackless_michels.m_bestdist << "\n";
+                      //        std::cout << "universe->m_vtx_michels.m_bestdist
+          = " <<
+          //            universe->GetBestDistance() << "\n";
+                      //        std::cout <<
+          //            "universe->GetTpiUntracked(trackless_michels.m_bestdist)
+          = " <<
+          //            universe->GetTpiUntracked(trackless_michels.m_bestdist)
+          << "\n"; std::cout << "universe->GetTpiTrackless() = " <<
+                      universe->GetTpiTrackless() << "\n";
+                                universe->PrintArachneLink();
+                      //          std::cout << "thetapi reco = " <<
+          //            universe->GetThetapitracklessDeg() << "\n";
+                      //          std::cout << "thetapi truth = " <<
+          //            universe->GetThetapitracklessTrueDeg() << "\n";
+                    }
+               */
           //===============
           // FILL RECO
           //===============

@@ -29,16 +29,16 @@ variables = [
     "thetamu_deg_true",
 ]
 
-File = TFile.Open("MCXSecInputs_20241031_ALL_mixed_newTpisystOnlySignalEffDenfixed_sys_p4.root")
-#File = TFile.Open("DataXSecInputs_20241031_ALL_mixed_newTpisystOnlySignalEffDen_sys_p4.root")
+#File = TFile.Open("MCXSecInputs_1110_ME1A_0_2024-12-02.root")
+File = TFile.Open("DataXSecInputs_20241204_ALL_mix_CCPiCVandSys_p4.root")
 Max = 0
 Min = 999999 
 MaxVar = ""
 MinVar = "" 
 h = File.Get("selection_mc_q2")
-#study = "cross_section"
+study = "cross_section"
 #study = "selection_mc"
-study = "effnum"
+#study = "effnum"
 #ErrNamesVec = h.GetVertErrorBandNames() 
 ErrNamesVec = ["CCPi+ Tune"]
 print (ErrNamesVec)

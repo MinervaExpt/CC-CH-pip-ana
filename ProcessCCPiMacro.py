@@ -3,6 +3,8 @@ import datetime as dt
 import os.path
 
 
+
+
 ###############################################################################
 # Constants/Default Args
 ###############################################################################
@@ -10,6 +12,7 @@ import os.path
 kGRID_SCRIPT = os.getenv("PWD") + "/grid_ccpi_macro.sh"
 kTOPDIR = os.getenv("TOPDIR")
 kANATUPLE_DIR = "/pnfs/minerva/persistent/DataPreservation/p4/FullDetector/"
+#kANATUPLE_DIR = "/pnfs/minerva/persistent/DataPreservation/p8/FullDetector/"
 #kANATUPLE_DIR = "/pnfs/minerva/persistent/users/zdar/"
 kOUTDIR = "/pnfs/{EXPERIMENT}/scratch/users/{USER}/TestMAD/".format(
     EXPERIMENT=os.getenv("EXPERIMENT"), USER=os.getenv("USER")
@@ -25,7 +28,7 @@ kMC_INPUTS_MACRO = "xsec/makeCrossSectionMCInputs.C+"
 kBACKGROUND_BREAKDOWN = "studies/runBackgrounds.C+"
 # Grid Stuff
 kMINERVA_RELEASE = os.getenv("MINERVA_RELEASE")
-kMEMORY = "8GB"
+kMEMORY = "10GB"
 kGRID_OPTIONS = (
     "--group minerva "
     "--resource-provides=usage_model=DEDICATED,OPPORTUNISTIC "
@@ -50,6 +53,20 @@ kPLAYLISTS = [
     "me1O",
     "me1P",
 ]
+#kPLAYLISTS = [
+#    "1A",
+#    "1B",
+#    "1C",
+#    "1D",
+#    "1E",
+#    "1F",
+#    "1G",
+#    "1L",
+#    "1M",
+#    "1N",
+#    "1O",
+#    "1P",
+#]
 kFILETAG = ""
 
 
@@ -83,7 +100,8 @@ def IFDHMove(source, destination):
 
 
 def IFDHCopy(source, destination):
-    cmd = "ifdh cp " + source + " " + destination + "/" + source
+   # cmd = "ifdh cp " + source + " " + destination + "/" + source
+    cmd = "cp " + source + " " + destination + "/" + source
     status = subprocess.call(cmd, shell=True)
     destination_full_path = destination + "/" + source
     return destination_full_path
@@ -249,6 +267,9 @@ def main():
         print("Using tuples from" + kANATUPLE_DIR)
 
         # loop anatuples
+#        list_of_anatuples = glob.glob(
+#            kANATUPLE_DIR + "/Playlist{0}/*".format(i_playlist)
+#        )
         list_of_anatuples = glob.glob(
             kANATUPLE_DIR + "/Merged_mc_ana_{0}_DualVertex_p4/*".format(i_playlist)
         )
@@ -269,6 +290,9 @@ def main():
             print(run)
 
             def XROOTDify(anatuple):
+#                return anatuple.replace(
+#                    "/pnfs/", "root://fndcadoor.fnal.gov/pnfs/fnal.gov/usr/"
+#                )
                 return anatuple.replace(
                     "/pnfs/", "root://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/"
                 )
