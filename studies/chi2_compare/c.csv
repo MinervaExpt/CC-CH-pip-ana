@@ -1,0 +1,76 @@
+Tpi
+Model & Conventional $\chi^2$ & Log-normal $\chi^2$ \\
+GENIE v2.12.6 & 254.277 & 127.67\\
+GENIE v3 hA empirical 2p2h & 72.5972 & 92.5025\\
+GENIE v3 hN empirical 2p2h & 45.4694 & 54.4004\\
+GiBUU & 45.2752 & 65.9332\\
+NEUT LFG & 56.0228 & 63.851\\
+NEUT SF & 54.2357 & 64.7365\\
+NuWro LFG & 57.6983 & 75.803\\
+NuWro SF & 59.2369 & 74.8004\\
+
+thpi
+Model & Conventional $\chi^2$ & Log-normal $\chi^2$ \\
+GENIE v2.12.6 & 59.3826 & 65.6561\\
+GENIE v3 hA empirical 2p2h & 38.0883 & 54.3804\\
+GENIE v3 hN empirical 2p2h & 26.2851 & 34.8697\\
+GiBUU & 31.8699 & 43.0243\\
+NEUT LFG & 24.6153 & 25.144\\
+NEUT SF & 23.2801 & 24.2781\\
+NuWro LFG & 19.0918 & 22.852\\
+NuWro SF & 18.796 & 22.4421\\
+
+q2
+Model & Conventional $\chi^2$ & Log-normal $\chi^2$ \\
+GENIE v2.12.6 & 22.9818 & 21.028\\
+GENIE v3 hA empirical 2p2h & 23.1635 & 24.2076\\
+GENIE v3 hN empirical 2p2h & 18.8989 & 18.6167\\
+GiBUU & 18.6934 & 21.509\\
+NEUT LFG & 13.9915 & 17.2119\\
+NEUT SF & 14.0103 & 18.1973\\
+NuWro LFG & 23.4356 & 17.8761\\
+NuWro SF & 23.4031 & 17.5485\\
+
+ptmu
+Model & Conventional $\chi^2$ & Log-normal $\chi^2$ \\
+GENIE v2.12.6 & 32.8659 & 27.9349\\
+GENIE v3 hA empirical 2p2h & 19.0786 & 27.7143\\
+GENIE v3 hN empirical 2p2h & 16.2013 & 22.2811\\
+GiBUU & 15.131 & 21.1302\\
+NEUT LFG & 10.6104 & 12.0643\\
+NEUT SF & 11.1966 & 13.5717\\
+NuWro LFG & 24.7182 & 28.9007\\
+NuWro SF & 24.6899 & 28.8879\\
+
+pzmu
+Model & Conventional $\chi^2$ & Log-normal $\chi^2$ \\
+GENIE v2.12.6 & 41.666 & 39.0577\\
+GENIE v3 hA empirical 2p2h & 26.0684 & 41.2503\\
+GENIE v3 hN empirical 2p2h & 26.2588 & 36.4178\\
+GiBUU & 26.7482 & 40.2687\\
+NEUT LFG & 33.8826 & 36.7442\\
+NEUT SF & 32.6643 & 36.2821\\
+NuWro LFG & 29.5406 & 38.9765\\
+NuWro SF & 29.6158 & 38.6284\\
+
+pmu
+Model & Conventional $\chi^2$ & Log-normal $\chi^2$ \\
+GENIE v2.12.6 & 31.3921 & 28.5553\\
+GENIE v3 hA empirical 2p2h & 18.8641 & 28.8969\\
+GENIE v3 hN empirical 2p2h & 19.3235 & 26.1112\\
+GiBUU & 19.7429 & 28.6173\\
+NEUT LFG & 27.5012 & 28.6466\\
+NEUT SF & 24.7922 & 26.564\\
+NuWro LFG & 22.3365 & 28.456\\
+NuWro SF & 22.6008 & 28.4265\\
+
+thmu
+Model & Conventional $\chi^2$ & Log-normal $\chi^2$ \\
+GENIE v2.12.6 & 34.0375 & 31.4346\\
+GENIE v3 hA empirical 2p2h & 18.5148 & 25.7634\\
+GENIE v3 hN empirical 2p2h & 14.0936 & 19.2515\\
+GiBUU & 16.7377 & 24.9694\\
+NEUT LFG & 17.4536 & 21.6736\\
+NEUT SF & 20.516 & 26.5567\\
+NuWro LFG & 18.356 & 24.4678\\
+NuWro SF & 18.7233 & 24.645\\

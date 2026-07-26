@@ -19,3 +19,4 @@ tuple-utils/logs/
 *.pdf
 *.txt*
 *ACLiC*
+*.ipynb_checkpoints/
